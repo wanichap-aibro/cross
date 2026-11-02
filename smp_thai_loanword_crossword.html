@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Crossword คำทับศัพท์ | SmartMathPro</title>
+<style>
+:root{--sky:#39bdff;--navy:#07519d;--blue:#167cdd;--pale:#dbf4ff;--salmon:#ff8c7f;--ink:#19334f;--muted:#637d94;--cell:35px}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:#e9f8ff;color:var(--ink);font-family:system-ui,-apple-system,"Noto Sans Thai","Segoe UI",Tahoma,sans-serif}
+.wrapper{max-width:860px;margin:0 auto;padding:15px}
+.game{position:relative;overflow:hidden;background:repeating-conic-gradient(from 9deg at 50% 49%,#b7e9ff 0deg 14deg,#a6ddf9 14deg 27deg);border:2px solid #8ccded;border-radius:25px;padding:14px 18px 24px;box-shadow:0 12px 30px #158bcb1e;isolation:isolate}
+.game:before{content:"";position:absolute;inset:0 0 auto;height:110px;z-index:-1;background:linear-gradient(180deg,#e3f8ffbc,transparent)}
+.confetti{position:absolute;color:#e5f8ffbb;font-size:32px;font-weight:900;pointer-events:none;user-select:none;z-index:-1}
+.confetti.a{top:150px;left:9px;transform:rotate(-22deg)}.confetti.b{top:250px;right:10px;transform:rotate(18deg)}.confetti.c{top:490px;left:10px;transform:rotate(20deg)}.confetti.d{bottom:150px;right:12px;transform:rotate(-15deg)}
+.header{background:linear-gradient(95deg,#0058c3,#0d7beb 54%,#0055b8);border:4px solid white;border-radius:12px;box-shadow:0 8px 0 #05599e;padding:12px;text-align:center;position:relative}
+.header::before{content:"";position:absolute;inset:5px 9px auto;height:20px;background:radial-gradient(#ffffff3d 1px,transparent 2px) 0 0/8px 8px;pointer-events:none}
+.header h1{position:relative;font-size:clamp(23px,5.8vw,43px);line-height:1.35;margin:0;white-space:normal;letter-spacing:-1.1px;text-shadow:2px 3px 0 white,-2px 3px 0 white,2px -2px 0 white,-2px -2px 0 white,4px 5px 0 #0452a0;color:#181c2e;font-weight:1000}
+.header h1 .red{color:#ff756c;text-shadow:2px 3px 0 white,-2px 3px 0 white,2px -2px 0 white,-2px -2px 0 white,4px 5px 0 #064f93}
+.tagline{text-align:center;margin:18px auto 12px;color:#06548d;font-size:14px;font-weight:700}
+.board-panel{max-width:780px;background:#ffffffed;border:1px solid #b6e7ff;border-radius:24px;box-shadow:0 7px 0 #6dc3e9,0 14px 20px #066caa21;margin:0 auto 18px;padding:17px 13px 11px}
+.board-scroll{overflow:auto;scrollbar-color:#9ccde7 #eff9fd;scrollbar-width:thin;touch-action:pan-x pan-y;overscroll-behavior-x:contain}
+.board-holder{width:max-content;min-width:100%;display:flex;justify-content:center}
+.board{position:relative;width:calc(20 * var(--cell));height:calc(21 * var(--cell));flex-shrink:0;touch-action:pan-x pan-y}
+.tile{position:absolute;width:var(--cell);height:var(--cell);border:1.5px solid #ff9f94;background:white;border-radius:3px;z-index:1;transition:background .12s,border-color .12s}
+.tile.selected-word{background:#e7f7ff;border-color:#36adf9;z-index:2}
+.tile.active{background:#fff5bb!important;border:2.5px solid #ffae37!important;z-index:3}
+.tile.correct{background:#e8fff3;border-color:#5cbd8c}
+.tile.incorrect{background:#fff0ef;border-color:#f57771}
+.tile.revealed{background:#eff3ff;border-color:#9981da}
+.tile input{display:block;appearance:none;width:100%;height:100%;border:0;outline:0;padding:4px 1px 0;background:none;text-align:center;color:#202b3e;font-weight:800;font-size:18px;line-height:1;caret-color:#0b82d7;font-family:inherit;border-radius:3px}
+.tile input:focus{outline:0}
+.tile .nums{pointer-events:none;position:absolute;left:1px;top:-11px;display:flex;gap:1px;z-index:5;min-width:max-content}
+.tile .num{background:#fff;color:#164c6c;border-radius:5px 5px 0 0;font-size:9px;font-weight:900;line-height:1;padding:1px 2px;box-shadow:0 -1px 2px #ccc5}
+.board-caption{display:flex;gap:7px;align-items:center;justify-content:center;font-size:11px;color:#6a8294;margin-top:3px}
+.game-status{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;margin:5px auto 13px;max-width:780px;background:#ffffffd9;border:1px solid #99dfff;border-radius:15px;padding:12px 15px}
+.game-status strong{display:block;color:#125e9c;font-size:14px}
+.game-status small{color:#60788b;font-size:12px}
+.progressbar{width:100%;height:9px;border-radius:99px;background:#dbecf6;overflow:hidden;margin-top:7px}
+.progressbar>div{height:100%;width:0;background:linear-gradient(90deg,#2db2ff,#66d3fb);transition:width .2s}
+.score{font-size:22px;font-weight:1000;color:#0879b8;white-space:nowrap}
+.selection{max-width:780px;margin:0 auto 12px;border:1px solid #a8d9f3;background:#f2fbff;border-radius:16px;padding:12px 15px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.selection .intro{font-size:12px;color:#7190a3;margin-bottom:3px}
+.selection .active-clue{font-weight:900;color:#075ea3;font-size:15px}
+.selection .nav{display:flex;gap:6px;flex-shrink:0}
+.btn{cursor:pointer;border:0;border-radius:12px;padding:11px 14px;font-size:14px;font-family:inherit;font-weight:900;transition:transform .12s,filter .12s}
+.btn:hover{filter:brightness(.98);transform:translateY(-1px)}
+.btn:focus-visible,.clue-item:focus-visible{outline:3px solid #126fc8;outline-offset:3px}
+.btn.blue{color:white;background:#067fdf}
+.btn.coral{color:white;background:#ff7569}
+.btn.white{color:#1261a0;background:#fff;border:1px solid #b6d9f1}
+.btn.pill{min-width:37px;padding:8px 10px}
+.tools{max-width:780px;margin:0 auto 15px;display:flex;gap:9px;justify-content:center;flex-wrap:wrap}
+.clue-panel{max-width:780px;margin:0 auto;background:#fffef6ee;border:1px solid #b8e7ff;border-radius:19px;padding:16px 17px 12px;box-shadow:0 5px 0 #7bcaee;position:relative}
+.clue-panel:before{content:"";height:100%;width:5px;left:16px;top:0;position:absolute;border-left:1px solid #daf0fa;pointer-events:none}
+.clues{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.clue-box h2{display:inline-flex;background:#ff786f;color:white;margin:0 0 10px;font-size:17px;font-weight:1000;padding:6px 13px;transform:rotate(-1.2deg);box-shadow:3px 3px 0 #ffd2c5}
+.clue-list{display:grid;gap:4px;margin:0;padding:0;list-style:none}
+.clue-item{background:transparent;border:0;border-radius:9px;display:flex;gap:7px;align-items:center;padding:6px 8px;width:100%;font-size:14px;text-align:left;color:#344655;font-family:inherit;cursor:pointer}
+.clue-item:hover{background:#e9f8ff}
+.clue-item.active{background:#def2ff;color:#006cb7;font-weight:800}
+.clue-item.done{color:#25866a}
+.clue-item .n{min-width:23px;font-weight:900;text-align:right;color:#ec6a63}
+.clue-item .word{flex:1}
+.clue-item .tick{color:#239873;font-weight:900}
+.feedback{display:none;max-width:780px;margin:0 auto 12px;border-radius:14px;padding:12px 14px;font-size:14px;line-height:1.7;font-weight:700}
+.feedback.show{display:block}.feedback.info{background:#f3fbff;color:#09588f;border:1px solid #c1e6fa}.feedback.success{background:#e8fff2;color:#177450;border:1px solid #9edbb9}.feedback.warn{background:#fff2ef;color:#ac3e35;border:1px solid #f4b3ac}
+.instructions{max-width:780px;margin:14px auto 0;background:#e9f9ffde;border:1px solid #a6d9f1;border-radius:15px;padding:12px 16px;font-size:13px;line-height:1.8;color:#32627e}
+.instructions b{color:#075c94}
+.footer{text-align:center;font-size:11px;color:#347ea7;margin:14px 0 2px}
+@media(max-width:760px){:root{--cell:35px}.wrapper{padding:6px}.game{border-radius:16px;padding:10px 9px 18px}.board-panel{border-radius:16px;padding:12px 6px}.board-holder{justify-content:flex-start}.header{padding:9px}.selection{align-items:flex-start}.clues{gap:8px}.clue-panel{padding:12px 9px}.clue-item{font-size:13px}.clue-box h2{font-size:15px}.tools .btn{padding:10px 11px;font-size:12px}}
+@media(max-width:500px){.clues{grid-template-columns:1fr}.clue-panel{padding:12px 14px}.selection{gap:7px}.selection .active-clue{font-size:13px}.btn.pill{min-width:32px}.header h1{letter-spacing:-.6px}}
+</style>
+</head>
+<body>
+<div class="wrapper"><main class="game">
+  <span class="confetti a">ก</span><span class="confetti b">ข</span><span class="confetti c">ค</span><span class="confetti d">ง</span>
+  <header class="header"><h1>Crossword <span class="red">คำทับศัพท์</span></h1></header>
+  <p class="tagline">อ่านคำศัพท์ภาษาอังกฤษ แล้วเติมคำทับศัพท์ภาษาไทยให้ครบทุกช่อง ✏️</p>
+  <section class="game-status"><div><strong>ความคืบหน้าของ Crossword</strong><small id="progressText">กรอกแล้ว 0 / 80 ช่อง</small><div class="progressbar"><div id="progressBar"></div></div></div><div class="score" id="scoreText">0%</div></section>
+  <section class="board-panel"><div class="board-scroll" id="boardScroll"><div class="board-holder"><div class="board" id="board" role="group" aria-label="ตาราง Crossword คำทับศัพท์"></div></div></div><div class="board-caption">⌨️ คลิกช่องแล้วพิมพ์ภาษาไทย · ใช้ปุ่มลูกศรหรือ Enter เพื่อเลื่อนช่อง · บนมือถือปัดตารางซ้าย–ขวาได้</div></section>
+  <section class="selection"><div><div class="intro">คำศัพท์ที่กำลังกรอก</div><div class="active-clue" id="selectedClue">เลือกช่องหรือคลิกคำศัพท์ด้านล่าง</div></div><div class="nav"><button class="btn white pill" id="prevCell" title="ช่องก่อนหน้า">◀</button><button class="btn blue pill" id="nextCell" title="ช่องถัดไป">▶</button></div></section>
+  <div class="feedback" id="feedback" aria-live="polite"></div>
+  <div class="tools"><button class="btn blue" id="checkBtn">✓ ตรวจคำตอบ</button><button class="btn white" id="hintBtn">💡 ใบ้ 1 ช่อง</button><button class="btn white" id="revealBtn">👀 ดูเฉลย</button><button class="btn coral" id="resetBtn">↻ เริ่มใหม่</button></div>
+  <section class="clue-panel"><div class="clues"><div class="clue-box"><h2>แนวตั้ง ↓</h2><div class="clue-list" id="downClues"></div></div><div class="clue-box"><h2>แนวนอน →</h2><div class="clue-list" id="acrossClues"></div></div></div></section>
+  <section class="instructions"><b>กติกาการกรอก</b> · 1 ช่องใส่ตัวอักษรหลักได้ <b>1 ตัว</b> (รวมสระหน้า เ แ โ ไ หรือสระเดี่ยวในช่องของตัวเอง) และมีสระบน/ล่างหรือวรรณยุกต์/การันต์ประกอบได้ <b>ไม่เกิน 2 เครื่องหมาย</b> เช่น <b>ดิ, ว์, รี่, ลิ</b> · พิมพ์เสร็จแล้วกด Enter หรือปุ่ม ▶ เพื่อไปช่องถัดไป · สามารถวางคำศัพท์หลายช่องได้ ระบบจะแยกให้โดยอัตโนมัติ</section>
+  <div class="footer">SMΛRTMATHPRO · ฝึกทบทวนคำทับศัพท์อย่างสนุกสนาน</div>
+</main></div>
+<script>
+(()=>{
+'use strict';
+// Each item is exactly one crossword cell, including its at-most-two combining marks.
+// The shared square (11,11) follows the standard spelling of Application (ลิ).
+// For common Bowling spelling ลิ่ง, the alternate ลิ่ is also accepted at this intersection.
+const WORDS=[
+ {id:1,dir:'down',x:19,y:0,english:'Digital',cells:['ดิ','จิ','ทั','ล']},
+ {id:2,dir:'down',x:17,y:1,english:'Update',cells:['อั','ป','เ','ด','ต']},
+ {id:3,dir:'down',x:9,y:3,english:'Broccoli',cells:['บ','ร','อ','ก','โ','ค','ลี']},
+ {id:4,dir:'down',x:14,y:3,english:'Carrot',cells:['แ','ค','ร์','ร','อ','ต']},
+ {id:5,dir:'down',x:11,y:8,english:'Bowling',cells:['โ','บ','ว์','ลิ','ง']},
+ {id:6,dir:'down',x:5,y:10,english:'Pizza',cells:['พิ','ซ','ซ่','า']},
+ {id:7,dir:'down',x:7,y:11,english:'Badminton',cells:['แ','บ','ด','มิ','น','ตั','น']},
+ {id:8,dir:'down',x:12,y:15,english:'Website',cells:['เ','ว็','บ','ไ','ซ','ต์']},
+ {id:9,dir:'across',x:14,y:3,english:'Apple',cells:['แ','อ','ป','เ','ปิ','ล']},
+ {id:10,dir:'across',x:6,y:5,english:'Strawberry',cells:['ส','ต','ร','อ','ว์','เ','บ','อ','ร์','รี่']},
+ {id:11,dir:'across',x:11,y:8,english:'Quota',cells:['โ','ค','ว','ต','า']},
+ {id:12,dir:'across',x:7,y:11,english:'Application',cells:['แ','อ','ป','พ','ลิ','เ','ค','ชั','น']},
+ {id:13,dir:'across',x:0,y:13,english:'Avocado',cells:['อ','ะ','โ','ว','ค','า','โ','ด']},
+ {id:14,dir:'across',x:6,y:15,english:'Internet',cells:['อิ','น','เ','ท','อ','ร์','เ','น็','ต']},
+ {id:15,dir:'across',x:12,y:18,english:'Like',cells:['ไ','ล','ก์']}
+];
+const el=(id)=>document.getElementById(id);
+const board=el('board'),boardScroll=el('boardScroll');
+const lookup=new Map();let selectedWord=null, selectedIndex=0, checked=false, revealedAll=false;
+let messageTimeout=0;
+function key(x,y){return x+','+y}
+function wordPositions(w){return w.cells.map((_,i)=>key(w.x+(w.dir==='across'?i:0),w.y+(w.dir==='down'?i:0)))}
+for(const w of WORDS){
+ w.positions=wordPositions(w);
+ for(let i=0;i<w.cells.length;i++){
+  const k=w.positions[i];if(!lookup.has(k))lookup.set(k,{k,x:w.x+(w.dir==='across'?i:0),y:w.y+(w.dir==='down'?i:0),solution:w.cells[i],words:[],starts:[],input:null,div:null,revealed:false});
+  const c=lookup.get(k);
+  if(c.solution!==w.cells[i]) throw new Error('Crossword intersection mismatch at '+k);
+  c.words.push(w.id);if(i===0)c.starts.push(w.id);
+ }
+}
+const inputs=new Map();
+for(const c of lookup.values()){
+ const d=document.createElement('div');d.className='tile';d.style.left=`calc(${c.x} * var(--cell))`;d.style.top=`calc(${c.y} * var(--cell))`;d.dataset.key=c.k;
+ if(c.starts.length){const nums=document.createElement('span');nums.className='nums';for(const id of c.starts){const ns=document.createElement('span');ns.className='num';ns.textContent=id;nums.append(ns)}d.append(nums)}
+ const inp=document.createElement('input');inp.type='text';inp.inputMode='text';inp.autocomplete='off';inp.autocapitalize='off';inp.spellcheck=false;inp.setAttribute('aria-label',`ช่อง ${c.x+1}, ${c.y+1}`);
+ d.append(inp);board.append(d);c.div=d;c.input=inp;inputs.set(c.k,inp);
+ inp.addEventListener('focus',()=>activateCell(c.k,false));
+ inp.addEventListener('click',()=>activateCell(c.k,true));
+ inp.addEventListener('input',(e)=>handleInput(c,e));
+ inp.addEventListener('keydown',(e)=>handleKey(e,c));
+ inp.addEventListener('paste',(e)=>{e.preventDefault();const text=e.clipboardData.getData('text');pasteCells(c,text)});
+}
+for(const w of WORDS){const b=document.createElement('button');b.type='button';b.className='clue-item';b.dataset.word=w.id;b.innerHTML=`<span class="n">${w.id}.</span><span class="word">${w.english}</span><span class="tick"></span>`;b.addEventListener('click',()=>selectWord(w.id,0,true));el(w.dir==='down'?'downClues':'acrossClues').append(b)}
+function splitThai(str){
+ const cleaned=(str||'').normalize('NFC').replace(/[^\u0E01-\u0E5B]/g,'');const result=[];
+ const mark=/[\u0E31\u0E34-\u0E3A\u0E47-\u0E4E]/;
+ for(const ch of cleaned){if(mark.test(ch)){if(result.length && [...result[result.length-1]].filter(x=>mark.test(x)).length<2)result[result.length-1]+=ch;}else result.push(ch)}
+ return result;
+}
+function normalizeCell(value){return splitThai(value)[0]||''}
+function selected(){return WORDS.find(w=>w.id===selectedWord)}
+function positionOf(w,index){return lookup.get(w.positions[index])}
+function selectWord(id,index=0,focus=true){
+ const w=WORDS.find(x=>x.id===id);if(!w)return;
+ selectedWord=w.id;selectedIndex=Math.max(0,Math.min(index,w.cells.length-1));
+ for(const c of lookup.values()){c.div.classList.toggle('selected-word',w.positions.includes(c.k));c.div.classList.toggle('active',c.k===w.positions[selectedIndex]);}
+ for(const b of document.querySelectorAll('.clue-item'))b.classList.toggle('active',Number(b.dataset.word)===id);
+ el('selectedClue').textContent=`${w.dir==='down'?'↓ แนวตั้ง':'→ แนวนอน'} ข้อ ${w.id} : ${w.english}`;
+ if(focus){let cell=positionOf(w,selectedIndex);cell.input.focus({preventScroll:true});const cr=cell.div.getBoundingClientRect(),sr=boardScroll.getBoundingClientRect();if(cr.left<sr.left+28||cr.right>sr.right-28){boardScroll.scrollTo({left:Math.max(0,cell.div.offsetLeft-boardScroll.clientWidth/2),behavior:'smooth'})} }
+}
+function activateCell(k,toggle){const c=lookup.get(k);if(!c)return;let w=selected();if(toggle && w && c.words.includes(w.id) && c.words.length>1){const other=c.words.find(id=>id!==w.id);selectWord(other,WORDS.find(x=>x.id===other).positions.indexOf(k),false);return}
+ if(!w||!c.words.includes(w.id)){const preferred=c.words.find(id=>WORDS.find(w=>w.id===id).dir==='across')||c.words[0];w=WORDS.find(x=>x.id===preferred)}
+ selectWord(w.id,w.positions.indexOf(k),false)}
+function updateProgress(){const filled=[...lookup.values()].filter(c=>c.input.value.trim()).length;const pct=Math.round(filled/lookup.size*100);el('progressText').textContent=`กรอกแล้ว ${filled} / ${lookup.size} ช่อง · ${WORDS.length} คำ`;el('progressBar').style.width=pct+'%';el('scoreText').textContent=pct+'%';for(const w of WORDS){const done=w.positions.every(k=>isCorrect(lookup.get(k)));const b=document.querySelector(`[data-word="${w.id}"]`);b.classList.toggle('done',done);b.querySelector('.tick').textContent=done?'✓':''}}
+function isCorrect(c){if(c.k==='11,11' && ['ลิ','ลิ่'].includes(c.input.value))return true;return c.input.value.normalize('NFC')===c.solution.normalize('NFC')}
+function clearStatus(c){if(!c.revealed)c.div.classList.remove('incorrect','correct')}
+function handleInput(c,e){if(c.revealed||revealedAll){c.input.value=c.solution;return}
+ const tokens=splitThai(c.input.value);if(tokens.length>1){pasteCells(c,c.input.value);return}
+ c.input.value=tokens[0]||'';clearStatus(c);checked=false;hideFeedback();updateProgress()}
+function pasteCells(c,text){const w=selected();const tokens=splitThai(text);if(!w||tokens.length===0)return;
+ let start=w.positions.indexOf(c.k);if(start<0)start=0;
+ tokens.forEach((token,i)=>{const p=w.positions[start+i];if(!p)return;const square=lookup.get(p);if(!square.revealed){square.input.value=token;clearStatus(square)}});
+ const nextIndex=Math.min(start+tokens.length,w.cells.length-1);selectWord(w.id,nextIndex,true);checked=false;hideFeedback();updateProgress()}
+function next(delta){const w=selected();if(!w)return;let i=selectedIndex+delta;if(i<0)i=0;if(i>=w.cells.length)i=w.cells.length-1;selectWord(w.id,i,true)}
+function handleKey(e,c){const w=selected();if(!w)return;
+ if(e.key==='Enter'||e.key==='Tab'){e.preventDefault();next(e.shiftKey?-1:1);return}
+ if(e.key==='ArrowRight'){e.preventDefault();next(1);return}
+ if(e.key==='ArrowLeft'){e.preventDefault();next(-1);return}
+ if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();const matching=c.words.map(id=>WORDS.find(w=>w.id===id));const target=matching.find(w=>w.dir===(e.key==='ArrowDown'?'down':'across'));if(target)selectWord(target.id,target.positions.indexOf(c.k),true);else next(e.key==='ArrowDown'?1:-1);return}
+ if(e.key==='Backspace'&&c.input.value===''){e.preventDefault();next(-1);const newC=positionOf(selected(),selectedIndex);if(!newC.revealed)newC.input.value='';clearStatus(newC);updateProgress();}
+}
+function showFeedback(t,type='info'){const f=el('feedback');f.textContent=t;f.className='feedback show '+type;clearTimeout(messageTimeout)}
+function hideFeedback(){el('feedback').className='feedback'}
+el('nextCell').addEventListener('click',()=>next(1));el('prevCell').addEventListener('click',()=>next(-1));
+el('checkBtn').addEventListener('click',()=>{
+ let right=0,wrong=0,empty=0;
+ for(const c of lookup.values()){c.div.classList.remove('correct','incorrect');if(!c.input.value){empty++;continue}if(isCorrect(c)){right++;c.div.classList.add('correct')}else{wrong++;c.div.classList.add('incorrect')}}checked=true;updateProgress();
+ if(right===lookup.size){showFeedback(`เก่งมาก! 🎉 ตอบถูกครบทั้ง ${WORDS.length} คำ (${lookup.size} ช่อง)`, 'success')}
+ else showFeedback(`ตรวจแล้ว: ถูก ${right} ช่อง · ผิด ${wrong} ช่อง · ยังไม่กรอก ${empty} ช่อง ${wrong?'(ช่องสีแดงควรแก้ไข)':''}`,wrong?'warn':'info');
+});
+el('hintBtn').addEventListener('click',()=>{const w=selected();if(!w)return;const c=positionOf(w,selectedIndex);c.input.value=c.solution;c.revealed=true;c.div.classList.remove('incorrect');c.div.classList.add('revealed');showFeedback(`ใบ้ให้แล้ว: ข้อ ${w.id} ช่องที่ ${selectedIndex+1} = “${c.solution}”`,'info');updateProgress();next(1)});
+el('revealBtn').addEventListener('click',()=>{if(revealedAll)return; if(!confirm('ต้องการดูเฉลยครบทุกช่องใช่ไหม?'))return;for(const c of lookup.values()){c.input.value=c.solution;c.revealed=true;c.input.readOnly=true;c.div.classList.remove('incorrect','correct');c.div.classList.add('revealed')}revealedAll=true;updateProgress();showFeedback('แสดงเฉลยทั้งหมดแล้ว สามารถกด “เริ่มใหม่” เพื่อฝึกอีกครั้งได้','success')});
+el('resetBtn').addEventListener('click',()=>{if(!confirm('ต้องการล้างคำตอบแล้วเริ่มใหม่หรือไม่?'))return;revealedAll=false;checked=false;for(const c of lookup.values()){c.input.value='';c.input.readOnly=false;c.revealed=false;c.div.classList.remove('correct','incorrect','revealed')}hideFeedback();updateProgress();selectWord(1,0,true)});
+// Select the first word without stealing browser focus before user interacts.
+if(window.matchMedia('(max-width:760px)').matches){selectWord(10,0,false);requestAnimationFrame(()=>{boardScroll.scrollLeft=190})}else{selectWord(1,0,false)}updateProgress();
+})();
+</script>
+</body>
+</html>
